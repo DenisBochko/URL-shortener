@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -26,6 +27,10 @@ type HTTPServer struct {
 
 // функии с приставкой Must не возвращают ошибку, а паникуют, так делать можно в редких случаях, например, при запуску приложения
 func MustLoad() *Config {
+	// Загружаем файл local.env
+	if err := godotenv.Load("local.env"); err != nil {
+		log.Print("No .env file found")
+	}
 	// Получаем путь до файла конфигураций из переменной окружения
 	configPath := os.Getenv("CONFIG_PATH")
 	// Роняем приложение, если не получили путь к конфигу
