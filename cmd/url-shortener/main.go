@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"url-shortener/internal/config"
+	"url-shortener/internal/lib/logger/sl"
+	"url-shortener/internal/storage/sqlite"
 
 	"log/slog"
 )
@@ -24,7 +26,13 @@ func main() {
 	log.Debug("debug messages are enabled")
 
 	// init storage: sqlite
+	storage, err := sqlite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("failed to init storage", sl.Err(err)) // добавили в лог ошибку
+		os.Exit(1)                                       // Падаем с ошибкой
+	}
 
+	_ = storage
 	// init router: chi (полностью совместим с net/http), render
 
 	// run server
