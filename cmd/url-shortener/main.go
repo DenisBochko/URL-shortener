@@ -33,6 +33,7 @@ func main() {
 	}
 
 	_ = storage
+
 	// init router: chi (полностью совместим с net/http), render
 
 	// run server
@@ -61,3 +62,4 @@ func setupLogger(env string) *slog.Logger {
 
 	return log
 }
+
