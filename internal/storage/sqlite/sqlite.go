@@ -56,7 +56,7 @@ func (s *Storage) SaveURL(urlToSave string, alias string) (int64, error) { // в
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", operation, err)
 	}
-
+	defer stmt.Close()
 	// отправляем запрос
 	res, err := stmt.Exec(urlToSave, alias)
 	// приводим ошибку к внутреннему типу sqlite
@@ -84,10 +84,10 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("%s: prepare statement: %w", operation, err)
 	}
-
+	defer stmt.Close()
 	var resURL string
 
-	err = stmt.QueryRow(alias).Scan(&resURL)
+	err = stmt.QueryRow(alias).Scan(&resURL) // выполняет подготовленный запрос
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", storage.ErrURLNotFound
@@ -99,5 +99,28 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	return resURL, nil
 }
 
-// TODO: implement method
-// func (s *Storage) DeleteURL(alias string) error
+func (s *Storage) DeleteURL(alias string) error {
+	const operation = "storage.sqlite.DeleteURL"
+
+	stmt, err := s.db.Prepare("DELETE FROM url WHERE alias = ?")
+	if err != nil {
+		return fmt.Errorf("%s: prepare statement: %w", operation, err)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(alias)
+	if err != nil {
+		return fmt.Errorf("%s: execute statement: %w", operation, err)
+	}
+
+	rowsAffected, err := res.RowsAffected() // возвращает количество строк, затронутых обновлением
+	if err != nil {
+		return fmt.Errorf("%s: getting rows affected: %w", operation, err)
+	}
+	// проверяем, действительно ли произошло удаление
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: no rows deleted, alias not found", operation)
+	}
+
+	return nil
+}

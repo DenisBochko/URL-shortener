@@ -5,6 +5,7 @@ import (
 	"os"
 	"url-shortener/internal/config"
 	"url-shortener/internal/http-server/handlers/redirect"
+	"url-shortener/internal/http-server/handlers/url/delete"
 	"url-shortener/internal/http-server/handlers/url/save"
 	mylogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
@@ -42,8 +43,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	_ = storage
-
 	// init router: chi (полностью совместим с net/http), render
 	router := chi.NewRouter()
 	// добавляем middleware
@@ -53,8 +52,10 @@ func main() {
 	router.Use(middleware.Recoverer) // если случается паника в одном из хендлеров, то приложение восстанавилвается, а не падает
 	router.Use(middleware.URLFormat) // "красивые" url (с id)
 
+	// хендлеры
 	router.Post("/url", save.New(log, storage))
 	router.Get("/{alias}", redirect.New(log, storage))
+	router.Delete("/{alias}", delete.New(log, storage))
 
 	// run server
 	log.Info("starting server", slog.String("addres", cfg.Addres))
