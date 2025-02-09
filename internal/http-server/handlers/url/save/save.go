@@ -34,7 +34,7 @@ type URLSaver interface {
 	SaveURL(urlToSave string, alias string) (int64, error)
 }
 
-func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
+func New(log *slog.Logger,  urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.save.New" // константа ошибки в функции
 

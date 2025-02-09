@@ -1,8 +1,11 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"url-shortener/internal/config"
+	"url-shortener/internal/http-server/handlers/redirect"
+	"url-shortener/internal/http-server/handlers/url/save"
 	mylogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/sl"
@@ -27,7 +30,9 @@ func main() {
 	log := setupLogger(cfg.Env)
 
 	// Старт приложения, также выводится какое окружение используется
-	log.Info("Starting url-shortener", slog.String("env", cfg.Env))
+	log.Info("Starting url-shortener",
+		slog.String("env", cfg.Env),
+	)
 	log.Debug("debug messages are enabled")
 
 	// init storage: sqlite
@@ -44,13 +49,28 @@ func main() {
 	// добавляем middleware
 	router.Use(middleware.RequestID) // middleware, которая добавляет id к каждому запросу, чтобы легче было ориентироваться в будущем
 	// router.Use(middleware.Logger) // логирование, но он не работает с slog, поэтому в проекте собственный middleware logger
-	router.Use(mylogger.New(log)) // используем собственный middleware для логов
-	router.Use(middleware.Recoverer) // если случается паника в одном из хендлеров, то приложение восстанавилвается, а не падает 
+	router.Use(mylogger.New(log))    // используем собственный middleware для логов
+	router.Use(middleware.Recoverer) // если случается паника в одном из хендлеров, то приложение восстанавилвается, а не падает
 	router.Use(middleware.URLFormat) // "красивые" url (с id)
 
-
+	router.Post("/url", save.New(log, storage))
+	router.Get("/{alias}", redirect.New(log, storage))
 
 	// run server
+	log.Info("starting server", slog.String("addres", cfg.Addres))
+	srv := &http.Server{
+		Addr:         cfg.Addres,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,     // время, чтобы успели прочитать запрос
+		WriteTimeout: cfg.HTTPServer.Timeout,     // время, чтобы успели написать ответ на запрос
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout, // время жизни соединения клиента с сервером
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+	// Если добрались до этого блока, то произошла ошибка, т.к. в обычной ситуации до этого блока кода никогда не доберёмся
+	log.Error("server stopped")
 }
 
 // Функция конфигурации логгера, зависит от входного параметра env, локально мы хотим видеть текстовые логи, на сервере,
