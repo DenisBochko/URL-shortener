@@ -51,11 +51,22 @@ func main() {
 	router.Use(mylogger.New(log))    // используем собственный middleware для логов
 	router.Use(middleware.Recoverer) // если случается паника в одном из хендлеров, то приложение восстанавилвается, а не падает
 	router.Use(middleware.URLFormat) // "красивые" url (с id)
+	
+	// группа url для модифицирующих операций
+	router.Route("/url", func(r chi.Router) {
+		// максимально простая авторизация, которая предполагает отправку логина и пароля в заголовке
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string {
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+
+		// хендлеры в группе /url/
+		r.Post("/", save.New(log, storage))
+		r.Delete("/{alias}", delete.New(log, storage))
+	})
 
 	// хендлеры
-	router.Post("/url", save.New(log, storage))
 	router.Get("/{alias}", redirect.New(log, storage))
-	router.Delete("/{alias}", delete.New(log, storage))
+	
 
 	// run server
 	log.Info("starting server", slog.String("addres", cfg.Addres))
