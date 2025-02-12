@@ -10,13 +10,15 @@ import (
 	mylogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/sl"
-	"url-shortener/internal/storage/postgreSQL"
+	postgresql "url-shortener/internal/storage/postgreSQL"
+
 	// "url-shortener/internal/storage/sqlite"
 
 	"log/slog"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/cors"
 )
 
 const (
@@ -50,6 +52,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Настройка CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"}, // Разрешить все источники или укажите конкретные
+		AllowedMethods: []string{"GET", "POST", "DELETE", "PUT"},
+		AllowedHeaders: []string{"Content-Type"},
+	})
+
 	// init router: chi (полностью совместим с net/http), render
 	router := chi.NewRouter()
 	// добавляем middleware
@@ -58,6 +67,7 @@ func main() {
 	router.Use(mylogger.New(log))    // используем собственный middleware для логов
 	router.Use(middleware.Recoverer) // если случается паника в одном из хендлеров, то приложение восстанавилвается, а не падает
 	router.Use(middleware.URLFormat) // "красивые" url (с id)
+	router.Use(c.Handler)
 
 	// группа url для модифицирующих операций
 	router.Route("/url", func(r chi.Router) {
@@ -67,12 +77,14 @@ func main() {
 		}))
 
 		// хендлеры в группе /url/
-		r.Post("/", save.New(log, storage))
-		r.Delete("/{alias}", delete.New(log, storage))
+		// r.Post("/", save.New(log, storage))
+		// r.Delete("/{alias}", delete.New(log, storage))
 	})
 
 	// хендлеры
 	router.Get("/{alias}", redirect.New(log, storage))
+	router.Post("/url", save.New(log, storage))
+	router.Delete("/url/{alias}", delete.New(log, storage))
 
 	// run server
 	log.Info("starting server", slog.String("addres", cfg.Addres))
