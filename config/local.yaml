@@ -1,8 +1,13 @@
 env: "local" # local, dev, prod, в общем указываем окружение, в котором будет запущена программа
-storage_path: storage\storage.db
+storage_path: storage/storage.db
 http_server: 
   address: "localhost:8082"
   timeout: 4s # время на чтение запроса и такое же время на отправку ответа, время на саму обработку НЕ ограничено
   idle_timeout: 60s # время жизни соединения клиента с сервером 
-  user: "myuser"
-  password: "mypass"
+  user_auth: "myuser"
+  password_auth: "mypass"
+postgres:
+  user: "postgres"
+  password: "postgres"
+  dbname: "url-shortener"
+  sslmode: "disable"

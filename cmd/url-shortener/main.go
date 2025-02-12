@@ -10,7 +10,8 @@ import (
 	mylogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/sl"
-	"url-shortener/internal/storage/sqlite"
+	"url-shortener/internal/storage/postgreSQL"
+	// "url-shortener/internal/storage/sqlite"
 
 	"log/slog"
 
@@ -29,7 +30,6 @@ func main() {
 
 	// init logger: slog (import "log/slog") - библиотека для работы с различными логгерами
 	log := setupLogger(cfg.Env)
-
 	// Старт приложения, также выводится какое окружение используется
 	log.Info("Starting url-shortener",
 		slog.String("env", cfg.Env),
@@ -37,7 +37,14 @@ func main() {
 	log.Debug("debug messages are enabled")
 
 	// init storage: sqlite
-	storage, err := sqlite.New(cfg.StoragePath)
+	// storage, err := sqlite.New(cfg.StoragePath)
+	// if err != nil {
+	// 	log.Error("failed to init storage", sl.Err(err))
+	// 	os.Exit(1)
+	// }
+
+	// init storage: postgresql
+	storage, err := postgresql.New(cfg.User, cfg.Password, cfg.DBname, cfg.SSLmode)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
@@ -51,12 +58,12 @@ func main() {
 	router.Use(mylogger.New(log))    // используем собственный middleware для логов
 	router.Use(middleware.Recoverer) // если случается паника в одном из хендлеров, то приложение восстанавилвается, а не падает
 	router.Use(middleware.URLFormat) // "красивые" url (с id)
-	
+
 	// группа url для модифицирующих операций
 	router.Route("/url", func(r chi.Router) {
 		// максимально простая авторизация, которая предполагает отправку логина и пароля в заголовке
-		r.Use(middleware.BasicAuth("url-shortener", map[string]string {
-			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.HTTPServer.User_auth: cfg.HTTPServer.Password_auth,
 		}))
 
 		// хендлеры в группе /url/
@@ -66,7 +73,6 @@ func main() {
 
 	// хендлеры
 	router.Get("/{alias}", redirect.New(log, storage))
-	
 
 	// run server
 	log.Info("starting server", slog.String("addres", cfg.Addres))

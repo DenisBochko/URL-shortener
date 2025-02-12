@@ -17,14 +17,22 @@ type Config struct {
 	StoragePath string `yaml:"storage_path" env:"storage_path" env-required:"true"`
 	// Встраиваем структуру HTTPServer в общий конфиг
 	HTTPServer `yaml:"http_server"`
+	PostgreSQL `yaml:"postgres"`
 }
 
 type HTTPServer struct {
-	Addres      string        `yaml:"address" env-default:"localhost:8080"`
-	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
-	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
-	User        string        `yaml:"user" env-required:"true"`
-	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
+	Addres        string        `yaml:"address" env-default:"localhost:8080"`
+	Timeout       time.Duration `yaml:"timeout" env-default:"4s"`
+	IdleTimeout   time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	User_auth     string        `yaml:"user_auth" env-required:"true"`
+	Password_auth string        `yaml:"password_auth" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
+}
+
+type PostgreSQL struct {
+	User     string `yaml:"user" env-default:"postgres"`
+	Password string `yaml:"password" env-default:"postgres"`
+	DBname   string `yaml:"dbname" env-default:"url-shortener"`
+	SSLmode  string `yaml:"sslmode" env-default:"disable"`
 }
 
 // Функция загрузки файла конфигурации.
