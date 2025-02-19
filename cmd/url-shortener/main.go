@@ -70,17 +70,17 @@ func main() {
 	router.Use(middleware.URLFormat) // "красивые" url (с id)
 	router.Use(c.Handler)
 
-	// группа url для модифицирующих операций
-	router.Route("/url", func(r chi.Router) {
-		// максимально простая авторизация, которая предполагает отправку логина и пароля в заголовке
-		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
-			cfg.HTTPServer.User_auth: cfg.HTTPServer.Password_auth,
-		}))
+	// // группа url для модифицирующих операций
+	// router.Route("/url", func(r chi.Router) {
+	// 	// максимально простая авторизация, которая предполагает отправку логина и пароля в заголовке
+	// 	r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+	// 		cfg.HTTPServer.User_auth: cfg.HTTPServer.Password_auth,
+	// 	}))
 
-		// хендлеры в группе /url/ с авторизацией
-		// r.Post("/", save.New(log, storage))
-		// r.Delete("/{alias}", delete.New(log, storage))
-	})
+	// 	// хендлеры в группе /url/ с авторизацией
+	// 	// r.Post("/", save.New(log, storage))
+	// 	// r.Delete("/{alias}", delete.New(log, storage))
+	// })
 
 	// главная страница
 	router.Get("/", mainpage.New(log))

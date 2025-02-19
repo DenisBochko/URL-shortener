@@ -8,7 +8,7 @@ http_server:
   password_auth: "mypass"
 postgres:
   user: "postgres"
-  port: "5430"
+  port: "5432"
   password: "postgres"
   dbname: "url-shortener"
   sslmode: "disable"

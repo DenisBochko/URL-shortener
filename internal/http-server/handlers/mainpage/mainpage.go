@@ -14,10 +14,6 @@ type PageData struct {
 func New(log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// const operation = "handlers.mainpage.New"
-
-		fs := http.FileServer(http.Dir("./static"))
-		http.Handle("/static/", http.StripPrefix("/static/", fs))
-
 		// log := log.With(
 		// 	slog.String("operation", operation),
 		// 	slog.String("request_id", middleware.GetReqID(r.Context())),
