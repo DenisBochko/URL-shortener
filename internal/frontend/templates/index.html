@@ -2,18 +2,65 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>{{ .Title }}</title>
+    <title>Сервис сокращения ссылок</title>
+    <script>
+        function copyToClipboard() {
+            let link = document.getElementById("shortLink");
+
+            // Создаём временный элемент для копирования
+            let tempInput = document.createElement("input");
+            tempInput.value = link.value;
+            document.body.appendChild(tempInput);
+
+            // Выделяем текст и копируем
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); // Для мобильных устройств
+            document.execCommand("copy");
+
+            // Удаляем временный элемент
+            document.body.removeChild(tempInput);
+
+            alert("Ссылка скопирована!");
+        }
+
+        async function shortenURL(event) {
+            event.preventDefault(); // Останавливаем стандартное поведение формы
+
+            let url = document.getElementById("url").value;
+            let alias = document.getElementById("alias").value;
+
+            let response = await fetch("/api/url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: url, alias: alias })
+            });
+
+            let result = await response.json();
+            if (result.status === "OK") {
+                // Добавляем http:// + текущий хост перед алиасом
+                let fullLink = `${window.location.protocol}//${window.location.host}/${result.alias}`;
+
+                document.getElementById("result").innerHTML = `
+                    <p>Сокращённая ссылка: 
+                        <input type="text" id="shortLink" value="${fullLink}" readonly>
+                        <button onclick="copyToClipboard()">Копировать</button>
+                    </p>
+                `;
+            } else {
+                document.getElementById("result").innerHTML = 
+                    `<p style="color: red;">Ошибка: ${result.error}</p>`;
+            }
+        }   
+    </script>
 </head>
 <body>
-    <h1>{{ .Title }}</h1>
-    <form action="/shorten" method="post">
-        <input type="text" name="url" placeholder="Введите URL" required>
-        <input type="text" name="alias" placeholder="Введите псевдоним (необязательно)">
+    <h1>Сервис сокращения ссылок</h1>
+    <form onsubmit="shortenURL(event)">
+        <input type="text" id="url" placeholder="Введите URL" required>
+        <input type="text" id="alias" placeholder="Введите псевдоним (необязательно)">
         <button type="submit">Сократить</button>
     </form>
-    {{ if .Result }}
-    <p>Короткая ссылка: <a href="{{ .Result }}">{{ .Result }}</a></p>
-    {{ end }}
+    <div id="result"></div>
 </body>
 </html>
 <style>
