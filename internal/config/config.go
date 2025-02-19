@@ -30,6 +30,7 @@ type HTTPServer struct {
 
 type PostgreSQL struct {
 	User     string `yaml:"user" env-default:"postgres"`
+	Port     string `yaml:"port" env-default:"5432"`
 	Password string `yaml:"password" env-default:"postgres"`
 	DBname   string `yaml:"dbname" env-default:"url-shortener"`
 	SSLmode  string `yaml:"sslmode" env-default:"disable"`

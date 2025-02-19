@@ -46,7 +46,7 @@ func main() {
 	// }
 
 	// init storage: postgresql
-	storage, err := postgresql.New(cfg.User, cfg.Password, cfg.DBname, cfg.SSLmode)
+	storage, err := postgresql.New(cfg.User, cfg.Password, cfg.DBname, cfg.SSLmode, cfg.Port)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
@@ -76,7 +76,7 @@ func main() {
 			cfg.HTTPServer.User_auth: cfg.HTTPServer.Password_auth,
 		}))
 
-		// хендлеры в группе /url/
+		// хендлеры в группе /url/ с авторизацией
 		// r.Post("/", save.New(log, storage))
 		// r.Delete("/{alias}", delete.New(log, storage))
 	})

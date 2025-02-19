@@ -11,10 +11,10 @@ type Storage struct {
 	db *sql.DB
 }
 
-func New(user, password, dbname, sslmode string) (*Storage, error) {
+func New(user, password, dbname, sslmode, port string) (*Storage, error) {
 	const operation = "storage.postgresql.New"
 
-	connStr := createConnString(user, password, dbname, sslmode)
+	connStr := createConnString(user, password, dbname, sslmode, port)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", operation, err)
@@ -38,9 +38,10 @@ func New(user, password, dbname, sslmode string) (*Storage, error) {
 }
 
 // Функция для генерации строки коннекта к бд
-func createConnString(user, password, dbname, sslmode string) string {
-	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
+func createConnString(user, password, dbname, sslmode, port string) string {
+	return fmt.Sprintf("user=%s port=%s password=%s dbname=%s sslmode=%s",
 		user,
+		port,
 		password,
 		dbname,
 		sslmode,
