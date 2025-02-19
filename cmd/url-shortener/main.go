@@ -7,6 +7,7 @@ import (
 	"url-shortener/internal/http-server/handlers/redirect"
 	"url-shortener/internal/http-server/handlers/url/delete"
 	"url-shortener/internal/http-server/handlers/url/save"
+	"url-shortener/internal/http-server/handlers/mainpage"
 	mylogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/sl"
@@ -81,10 +82,17 @@ func main() {
 		// r.Delete("/{alias}", delete.New(log, storage))
 	})
 
-	// хендлеры
+	// главная страница
+	router.Get("/", mainpage.New(log))
+
+	// хендлеры для работы с api
+	router.Route("/api", func(r chi.Router) {
+		r.Post("/url", save.New(log, storage))
+		r.Delete("/url/{alias}", delete.New(log, storage))
+	})
+
+	// хендлер редиректа
 	router.Get("/{alias}", redirect.New(log, storage))
-	router.Post("/url", save.New(log, storage))
-	router.Delete("/url/{alias}", delete.New(log, storage))
 
 	// run server
 	log.Info("starting server", slog.String("addres", cfg.Addres))

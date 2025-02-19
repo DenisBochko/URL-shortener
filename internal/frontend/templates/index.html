@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>{{ .Title }}</h1>
+    <form action="/shorten" method="post">
+        <input type="text" name="url" placeholder="Введите URL" required>
+        <input type="text" name="alias" placeholder="Введите псевдоним (необязательно)">
+        <button type="submit">Сократить</button>
+    </form>
+    {{ if .Result }}
+    <p>Короткая ссылка: <a href="{{ .Result }}">{{ .Result }}</a></p>
+    {{ end }}
+</body>
+</html>
